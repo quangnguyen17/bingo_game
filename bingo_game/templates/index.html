@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
@@ -16,9 +15,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <!-- Your Stuffs -->
     <title>BingoGame</title>
     {% load static %}
     <style>
@@ -32,6 +28,11 @@
         body {
             background-color: black;
             color: white;
+            overflow-y: auto;
+        }
+
+        #bingo-board {
+            overflow: hidden;
         }
 
         #data .btn {
@@ -41,42 +42,124 @@
         #data .btn:hover {
             transform: scale(1.125);
         }
+
+        select:not([multiple]) {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-position: right 50%;
+            background-repeat: no-repeat;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAMCAYAAABSgIzaAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDZFNDEwNjlGNzFEMTFFMkJEQ0VDRTM1N0RCMzMyMkIiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDZFNDEwNkFGNzFEMTFFMkJEQ0VDRTM1N0RCMzMyMkIiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NkU0MTA2N0Y3MUQxMUUyQkRDRUNFMzU3REIzMzIyQiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NkU0MTA2OEY3MUQxMUUyQkRDRUNFMzU3REIzMzIyQiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PuGsgwQAAAA5SURBVHjaYvz//z8DOYCJgUxAf42MQIzTk0D/M+KzkRGPoQSdykiKJrBGpOhgJFYTWNEIiEeAAAMAzNENEOH+do8AAAAASUVORK5CYII=);
+            padding: .5em;
+            padding-right: 1.5em
+        }
+
+        #timer-select {
+            border-radius: 0;
+        }
     </style>
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.word-btn').forEach((element) => {
+                element.onclick = (event) => {
+                    event.target.classList.add('active');
+                };
+            })
+
+            code = ``;
+
+            for (var min = 15; min <= 60; min++) {
+                code += `<option value="${min}">${min} Minutes</option>`
+            }
+
+            document.getElementById('timer-select').innerHTML = code;
+        });
     </script>
 </head>
 
 <body>
     <div class="container-fluid m-0 px-5 pt-5 pb-0">
-        <ul class="list-inline m-0">
-            <li class="list-inline-item align-middle">
-                <h1 class="m-0">BingoBingy!</h1>
-            </li>
-            <li class="list-inline-item w-50 ml-3 align-middle">
-                <form action="/" method="GET">
-                    <div class="form-row">
-                        <input name="keyword" type="text"
-                            class="form-control col-8 border border-light p-4 rounded-0 text-light align-middle"
-                            placeholder="Type in your keyword here..." style="background-color: black;">
-                        <button type="submit"
-                            class="col-4 btn btn-outline-light p-1 rounded-0 align-middle">Submit!</button>
-                    </div>
-                </form>
-            </li>
-        </ul>
+        <div class="row m-0 p-0">
+            <h1 class="font-weight-bold d-block w-100 mb-3">BingoBingy!</h1><br>
+            <form action="/" method="GET" class="w-50 d-block m-0 px-2">
+                <div class="form-row">
+                    <input name="keyword" type="text"
+                        class="form-control col-8 border border-light p-4 rounded-0 text-light align-middle"
+                        placeholder="Type in your keyword here..." style="background-color: black;" required>
+                    <button type="submit" class="col-4 btn btn-outline-light p-1 rounded-0 align-middle">Submit &
+                        Play!</button>
+                </div>
+            </form>
+        </div>
     </div>
     <div class="container-fluid m-0 p-5">
-        {% for row in rows %}
-        <div class="row m-0 p-0">
-            {% for word in row %}
-            <div class="col m-0 p-1">
-                <button class="btn btn-outline-light text-center w-100 h-100 m-0 p-5 rounded-0">
-                    <h4 class="m-0 p-0">{{ word.word }}</h4>
-                </button>
-            </div>
-            {% endfor %}
+        <div class="row m-0 p-0 px-1">
+            <ul class="list-inline">
+                <li class="list-inline-item align-middle">
+                    <h2 class="m-0">Time Left: 30m 0s</h2>
+                </li>
+                <li class="list-inline-item align-middle">
+                    <select name="time-select" id="timer-select" class="btn btn-outline-light py-2 px-4">
+                        <option value=""></option>
+                    </select>
+                </li>
+            </ul>
         </div>
-        {% endfor %}
+        <div class="row m-0 p-0">
+            <div class="col-9 m-0 p-0">
+                <div id="bingo-board" class="container-fluid m-0 p-0">
+                    {% for row in rows %}
+                    <div class="row m-0 p-0">
+                        {% for word in row %}
+                        <div class="col m-0 p-1">
+                            <button
+                                class="btn btn-outline-light text-center font-weight-bold w-100 h-100 m-0 p-5 rounded-0 word-btn">
+                                {{ word.word }}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-3 m-0 p-0 px-3">
+                <ul class="list-inline text-center">
+                    <li>
+                        <h3>Leaderboard:</h3>
+                    </li>
+                    <li class="my-5">
+                        <h5>* TOTAL PLAYED *</h5>
+                        <ul class="list-inline">
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                        </ul>
+                    </li>
+                    <li class="mb-5">
+                        <h5>* TOTAL PLAYED *</h5>
+                        <ul class="list-inline">
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h5>* TOTAL PLAYED *</h5>
+                        <ul class="list-inline">
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                            <li class="list-inline-item">Javascript</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 </body>
 
