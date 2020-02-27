@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, HttpResponse
+from django.contrib import messages
 from .models import *
-from bs4 import BeautifulSoup
-import requests
+import wikipedia
 import random
 import re
 
@@ -14,43 +14,40 @@ def index(request):
     if 'keyword' in request.GET:
         if request.GET['keyword'] is not None:
             keyword = request.GET['keyword']
-            trimmed_keyword = " ".join(keyword.split())
+            keyword_obj = try_keyword(request, keyword)
+            two_d_array = get_2d_array(keyword_obj)
 
-            if len(trimmed_keyword) > 0:
-                keyword_obj = try_keyword(keyword)
-                two_d_array = get_2d_array(keyword_obj)
+            # total_stats = get_total_stats()
+            # '''
+            # total_stats = [
+            #     total_played,
+            #     total_wins,
+            #     ['word','word','word','word','word']
+            # ]
+            # '''
 
-                total_stats = get_total_stats()
-                '''
-                total_stats = [
-                    total_played,
-                    total_wins,
-                    ['word','word','word','word','word']
-                ]
-                '''
-                
-                # TODO
-                # UPDATE STATS FOR WHEN / GAME PLAYS
+            # TODO
+            # UPDATE STATS FOR WHEN / GAME PLAYS
 
-                context['rows'] = two_d_array
+            context['rows'] = two_d_array
 
     return render(request, 'index.html', context)
 
 
 # GIVEN A STRING, RETURNS KEYWORD OBJECT
 
-
-def try_keyword(keyword):
-    if len(Keyword.objects.filter(word=keyword)) != 0:
+def try_keyword(request, keyword):
+    # If word exists
+    try:
         keyword_to_play = Keyword.objects.get(word=keyword.upper())
-    else:
-        # 50 WORDS
-        list_of_words = get_words(keyword)
+    # If keyword is a new word
+    except:
+        list_of_words = get_words(request, keyword)
         keyword_to_play = Keyword.objects.create(word=keyword.upper())
 
         for word in list_of_words:
-            subword_to_add = Subword.objects.create(word=word)
-            subword_to_add.keywords.add(keyword_to_play)
+            subword = Subword.objects.create(word=word)
+            subword.keywords.add(keyword_to_play)
 
     return keyword_to_play
 
@@ -101,42 +98,44 @@ def get_2d_array(keyword_obj):
     return two_d_array
 
 
-def get_words(keyword):
-    words = []
-    url = f'https://en.wikipedia.org/wiki/{keyword}'
+def get_words(request, keyword):
+    try:
+        summary = wikipedia.summary(keyword)
+        summary = summary.replace('.', ' ').replace(',', ' ').replace(
+            '/', ' ').replace('\n', ' ').replace('(', ' ').replace(')', ' ')
+        summary = summary.split(' ')
 
-    REGEX = re.compile(r'^[A-Za-z]+$')
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    text = soup.get_text()
-    raw_list = " ".join(text.split()).split(' ')
+        REGEX = re.compile(r'^[A-Za-z]+$')
 
-    def word_valid(word):
-        word_length = len(word)
-        return word_length >= len(keyword) and word_length < (word_length * 2) and REGEX.match(word)
+        list = []
 
-    filtered_words = list(filter(word_valid, raw_list))
-    filtered_words = list(dict.fromkeys(filtered_words))
-    filtered_words = filtered_words[2:-30]
+        # WILL EVENTUALLY BE REPLACED WITH ANY API
+        dummy_words = ['WITH', 'ALSO', 'THAT', 'THIS', 'THERE', 'MOST',
+                       'ALONG', 'FROM', 'BASED', 'OTHER', 'SOME', 'HAVE', 'DOING']
 
-    for i in range(50):
-        random_word = filtered_words[random.randint(
-            0, len(filtered_words) - 1)].upper()
-        words.append(random_word)
+        for index in range(len(summary)):
+            word = summary[index].upper()
+            if len(word) > 3 and REGEX.match(word) and word != keyword.upper() and word not in dummy_words:
+                list.append(word)
+    except:
+        messages.error(
+            request, f'No results for "{keyword}", try another keyword! :(')
+        return None
 
-    return words
-
+    return list
 # Returns [Total Games Played, Total Games Won, Top 5 words] in DB
+
+
 def get_total_stats():
     total_played = 0
     total_wins = 0
-    #top_five_words = [{"none":0},{"none":0},{"none":0},{"none":0},{"none":0}]
-    one={"word":"none", "count":0} 
-    two={"word":"none", "count":0}
-    three={"word":"none", "count":0}
-    four={"word":"none", "count":0}
-    five={"word":"none", "count":0}
-    
+    # top_five_words = [{"none":0},{"none":0},{"none":0},{"none":0},{"none":0}]
+    one = {"word": "none", "count": 0}
+    two = {"word": "none", "count": 0}
+    three = {"word": "none", "count": 0}
+    four = {"word": "none", "count": 0}
+    five = {"word": "none", "count": 0}
+
     all_keywords_sorted_by_played = Keyword.objects.all().order_by('games_used')
     for keyword in all_keywords_sorted_by_played:
         # Increment total played and won
@@ -144,14 +143,14 @@ def get_total_stats():
         total_wins += keyword.games_won
         # Check Against Top 5, replace if larger
         if one['count'] < keyword.games_used:
-            one = {"word":keyword.word, "count":keyword.games_used}
+            one = {"word": keyword.word, "count": keyword.games_used}
         elif two['count'] < keyword.games_used:
-            two = {"word":keyword.word, "count":keyword.games_used}
+            two = {"word": keyword.word, "count": keyword.games_used}
         elif three['count'] < keyword.games_used:
-            three = {"word":keyword.word, "count":keyword.games_used}
+            three = {"word": keyword.word, "count": keyword.games_used}
         elif four['count'] < keyword.games_used:
-            four = {"word":keyword.word, "count":keyword.games_used}
+            four = {"word": keyword.word, "count": keyword.games_used}
         elif five['count'] < keyword.games_used:
-            five = {"word":keyword.word, "count":keyword.games_used}
-    
-    return [total_played,total_wins,[one['word'],two['word'],three['word'],four['word'],five['word']]]
+            five = {"word": keyword.word, "count": keyword.games_used}
+
+    return [total_played, total_wins, [one['word'], two['word'], three['word'], four['word'], five['word']]]
