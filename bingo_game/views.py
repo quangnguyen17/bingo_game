@@ -103,24 +103,19 @@ def get_words(keyword):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     text = soup.get_text()
-    words_list = " ".join(text.split()).split(' ')
+    raw_list = " ".join(text.split()).split(' ')
 
     def word_valid(word):
         word_length = len(word)
         return word_length >= len(keyword) and word_length < (word_length * 2) and REGEX.match(word)
 
-    filtered_list = filter(word_valid, words_list)
-
-    filtered_words = []
-    for word in filtered_list:
-        filtered_words.append(word)
-
-    final_list = list(dict.fromkeys(filtered_words))
-
-    print(filtered_list)
+    filtered_words = list(filter(word_valid, raw_list))
+    filtered_words = list(dict.fromkeys(filtered_words))
+    filtered_words = filtered_words[2:-30]
 
     for i in range(50):
-        random_word = final_list[random.randint(0, len(final_list) - 1)]
-        words.append(random_word.upper())
+        random_word = filtered_words[random.randint(
+            0, len(filtered_words) - 1)].upper()
+        words.append(random_word)
 
     return words
