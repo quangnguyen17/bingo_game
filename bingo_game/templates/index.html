@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- Your Stuffs -->
+    <title>BingoGame</title>
+    {% load static %}
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Fira+Code&display=swap');
+
+        * {
+            overflow-wrap: break-word;
+            font-family: 'Fira Code', sans-serif;
+        }
+
+        #data .btn {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        #data .btn:hover {
+            transform: scale(1.25);
+        }
+    </style>
+    <script>
+        REGEX = /^[A-Za-z0-9 ]+$/;
+
+        wordsList = [];
+
+        runApp = () => {
+            minWordLength = parseInt('{{ word_length }}');
+            wordsList = $('#text').text().trim().split(' ');
+
+            wordIsValid = (element, index) => {
+                return element.length > minWordLength && element.length < 25 && REGEX.test(element) && wordsList.indexOf(element) === index
+            }
+
+            wordsList.filter(wordIsValid).forEach(element => {
+                $('#data').append(`<li class="list-inline-item btn btn-outline-light rounded-0 p-2 m-1">${element}</li>`);
+            });
+        }
+
+        checkGame = () => {
+            // 5 in a row
+            // 25 found
+            // WINS
+
+
+        }
+
+        $(document).ready(() => {
+            runApp();
+
+            $('.btn').on('click', (event) => {
+                $(event.target).addClass('active');
+            });
+        });
+    </script>
+</head>
+
+<body class="text-light" style="background-color: black;">
+    <div class="container-fluid m-0 p-5 text-center">
+        <h1 class="font-weight-bold mb-4">BingoGame</h1>
+        <ul class="list-inline">
+            <li>
+                <p class="m-0">Data extracted from: <a class="text-light" href="{{ url }}">{{ url }}</a></p>
+                <form action="/" method="GET" class="text-center mx-auto">
+                    <input name="keyword" style="background: black;" type="text"
+                        class="form-control text-light w-50 rounded-0 mx-auto" placeholder="Type your keyword here...">
+                    <input name="word_length" style="background: black;" type="text"
+                        class="form-control text-light w-50 rounded-0 mx-auto"
+                        placeholder="Customize your word length (Optional)">
+                    <button type="submit" class="col-4 rounded-0 btn btn-outline-light">Submit</button>
+                </form>
+                <h5 class="mb-5">Showing related words to
+                    "{% if keyword != None %}{{ keyword }}{% else %}Javascript{% endif %}"
+                </h5>
+            </li>
+            <ul id="data" class="list-inline">
+
+            </ul>
+        </ul>
+        <ul class="list-inline mt-5">
+            <li>Raw:</li>
+            <ul class="list-inline">
+                <li id="text" class="text-warning">{{ text }}</li>
+            </ul>
+        </ul>
+    </div>
+</body>
+
+</html>
