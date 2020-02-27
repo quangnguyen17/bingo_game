@@ -20,10 +20,16 @@ def index(request):
                 keyword_obj = try_keyword(keyword)
                 two_d_array = get_2d_array(keyword_obj)
 
+                total_stats = get_total_stats()
+                '''
+                total_stats = [
+                    total_played,
+                    total_wins,
+                    ['word','word','word','word','word']
+                ]
+                '''
+                
                 # TODO
-                # TOTAL PLAYED
-                # TOTAL WINS
-                # TOP 5 WORDS
                 # UPDATE STATS FOR WHEN / GAME PLAYS
 
                 context['rows'] = two_d_array
@@ -124,3 +130,33 @@ def get_words(keyword):
         words.append(random_word.upper())
 
     return words
+
+# Returns [Total Games Played, Total Games Won, Top 5 words] in DB
+def get_total_stats():
+    total_played = 0
+    total_wins = 0
+    #top_five_words = [{"none":0},{"none":0},{"none":0},{"none":0},{"none":0}]
+    one={"word":"none", "count":0} 
+    two={"word":"none", "count":0}
+    three={"word":"none", "count":0}
+    four={"word":"none", "count":0}
+    five={"word":"none", "count":0}
+    
+    all_keywords_sorted_by_played = Keyword.objects.all().order_by('games_used')
+    for keyword in all_keywords_sorted_by_played:
+        # Increment total played and won
+        total_played += keyword.games_used
+        total_wins += keyword.games_won
+        # Check Against Top 5, replace if larger
+        if one['count'] < keyword.games_used:
+            one = {"word":keyword.word, "count":keyword.games_used}
+        elif two['count'] < keyword.games_used:
+            two = {"word":keyword.word, "count":keyword.games_used}
+        elif three['count'] < keyword.games_used:
+            three = {"word":keyword.word, "count":keyword.games_used}
+        elif four['count'] < keyword.games_used:
+            four = {"word":keyword.word, "count":keyword.games_used}
+        elif five['count'] < keyword.games_used:
+            five = {"word":keyword.word, "count":keyword.games_used}
+    
+    return [total_played,total_wins,[one['word'],two['word'],three['word'],four['word'],five['word']]]
