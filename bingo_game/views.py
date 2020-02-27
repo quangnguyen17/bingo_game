@@ -24,6 +24,7 @@ def index(request):
                 # TOTAL PLAYED
                 # TOTAL WINS
                 # TOP 5 WORDS
+                # UPDATE STATS FOR WHEN / GAME PLAYS
 
                 context['rows'] = two_d_array
 
@@ -115,6 +116,8 @@ def get_words(keyword):
         filtered_words.append(word)
 
     final_list = list(dict.fromkeys(filtered_words))
+
+    print(filtered_list)
 
     for i in range(50):
         random_word = final_list[random.randint(0, len(final_list) - 1)]

@@ -1,0 +1,9 @@
+.vscode
+env/
+venv/
+__pycache__/
+.vscode/
+db.sqlite3
+
+bingo_game/migrations/*
+bingo_game/__pycache/*
